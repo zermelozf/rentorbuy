@@ -1,88 +1,103 @@
+from collections import defaultdict
+
+import streamlit as st
 import numpy as np
 import pandas as pd
-import streamlit as st
 
 import plotly.express as px
 
-from mortgage import Loan
+from models import Bank, Loan, RealEstate, Rent, Salary
 
 
-st.title('Rent or Buy')
+n = st.sidebar.slider("Timeline (years)", value=35, max_value=50)
 
-n = st.sidebar.slider("Max. number of years", value=12)
+st.sidebar.markdown('# Economic conditions')
+market_rate = st.sidebar.number_input('Stock Market rate', value=0.05, format='%f')
+appreciation_rate = st.sidebar.number_input('House Market rate', value=0.02, format='%f', key=10)
+inflation_rate = st.sidebar.number_input('Inflation rate', value=0.02, format='%f')
+monthly_salary = st.sidebar.number_input('Available money', value=300_000)
+salary_increase_rate = st.sidebar.number_input('Available money increase rate', value=0.0, format='%f')
 
-st.sidebar.markdown('# Rent')
-monthly_rent = st.sidebar.number_input('Montly rent', value=120000)
-renewal_money = st.sidebar.number_input('Renewal money', value=120000)
+tabs = st.tabs(["Summary", "Rent", "Buy"])
 
-st.sidebar.markdown('# Buy')
-property_price = st.sidebar.number_input('Property price', value=40000000)
-land_price = st.sidebar.number_input('Land price', value=60000000)
-broker_fee = st.sidebar.number_input('Broker fee', value=12000)
+with tabs[1]:
+    st.markdown('# Rent')
+    monthtly_rent = st.number_input('Monthly rent', value=120000, key='1')
+    renewal_fee = st.number_input('Renewal fee', value=240000, key='4')
 
-st.sidebar.markdown('# Financing')
-mortgage_value = (property_price + land_price) * \
-    st.sidebar.number_input('Mortgage rate', value=0.9)
-inflation_rate = st.sidebar.number_input('Inflation rate', value=12000)
-mortage_period = st.sidebar.number_input('Mortgage period', value=25)
-mortgage_rate = st.sidebar.number_input('Mortgage rate', value=0.005)
-market_rate = st.sidebar.number_input('Market rate', value=0.05)
-appreciation_rate = st.sidebar.number_input('Appreciation rate', value=0.02)
+    bank_rent = Bank(initial_deposit=0, interest_rate=market_rate)
+    rent = Rent(
+        monthly_rent=monthtly_rent, 
+        renewal_fee=renewal_fee,
+        inflation_rate=inflation_rate
+    )
+
+with tabs[2]:
+    st.markdown('# House')
+    house_price = st.number_input('House price', value=40_000_000, key=7)
+    land_price = st.number_input('Land price', value=60_000_000, key=8)
+    broker_fee = st.number_input('Broker fee', value=0.07, key=9)
+
+    st.markdown('# Financing')
+    principal2 = st.number_input('Mortgage amount', value=int(0.9 * (house_price + land_price)), key=11)
+    mortage_period2 = st.number_input('Mortgage period', value=25, key=12)
+    mortgage_rate2 = st.number_input('Mortgage rate', value=0.005, key=13)
+
+    bank_buy = Bank(initial_deposit=0, interest_rate=market_rate)
+    house = RealEstate(
+        house_value=house_price,
+        land_value=land_price,
+        down_payment=(house_price + land_price) * (1 + broker_fee) - principal2,
+        broker_fee=broker_fee,
+        market_rate=appreciation_rate,
+        inflation_rate=inflation_rate
+    )
+    loan = Loan(
+        principal=principal2,
+        yearly_interest=mortgage_rate2,
+        term=mortage_period2,
+        inflation_rate=inflation_rate
+    )
+
+salary = Salary(
+    monthly_salary=monthly_salary,
+    yearly_bonus=0,
+    increase_rate=salary_increase_rate,
+    inflation_rate=inflation_rate
+)
 
 
-mv = Loan(principal=mortgage_value, interest=0.0375, term=30)
+with tabs[0]:
+    st.subheader("Rent Or Buy")
 
-records = []
-for year in range(n):
-    rent = monthly_rent * 12 + renewal_money * (year % 2)
-    loan = float(mv.monthly_payment * 12) if year < n else 0
-    if year == 0:
-        loan += (property_price + land_price) - mortgage_value
-    records.append({
-        'year': year,
-        'cash': -rent,
-        'source': 'rent'
-    })
-    records.append({
-        'year': year,
-        'cash': -loan,
-        'source': 'buy'
-    })
-    records.append({
-        'year': year,
-        'cash': loan - rent,
-        'source': 'rent surplus'
-    })
+    data = []
+    for year in range(n):
+        cashflow = rent.cashflow(year) + salary.cashflow(year)
+        bank_rent.add_cash(cashflow)
+        assets = bank_rent.value_at_year(year)
+        data.append({
+            'year': year,
+            'cashflow': cashflow,
+            'value': assets,
+            'source': 'Rent'
+        })
+        cashflow = house.cashflow(year) + loan.cashflow(year) + salary.cashflow(year)
+        bank_buy.add_cash(cashflow)
+        assets = house.value_at_year(year) + bank_buy.value_at_year(year)
+        liabilities = loan.value_at_year(year)
+        
+        data.append({
+            'year': year,
+            'cashflow': cashflow,
+            'value': assets + liabilities,
+            'source': 'Buy'
+        })
 
-cashflow = pd.DataFrame(records)
-fig = px.bar(cashflow, x="year", y="cash", color="source",
-             barmode="group", title="Cashflow")
-st.plotly_chart(fig, use_container_width=True)
+    
+    data = pd.DataFrame(data)
+    fig = px.bar(data, x="year", y="cashflow", color="source", barmode='group', title="Cashflow")
+    st.plotly_chart(fig, use_container_width=True)
 
-asset = 0
-records = [{
-    'year': 0,
-    'assets': 0,
-    'source': 'rent'
-}, {
-    'year': 0,
-    'assets': land_price + property_price,
-    'source': 'buy'
-}]
-for row in cashflow[cashflow['source'] == 'rent surplus'].to_dict(orient="records"):
-    asset = (asset + row['cash']) * (1 + market_rate)
-    records.append({
-        'year': row['year'] + 1,
-        'assets': asset,
-        'source': 'rent'
-    })
-
-    records.append({
-        'year': row['year'] + 1,
-        'assets': land_price * (1 + appreciation_rate)**int(row['year']) + property_price * (n - row['year']) / 26,
-        'source': 'buy'
-    })
-
-assets = pd.DataFrame(records)
-fig = px.line(assets, x="year", y="assets", color="source", title="Assets")
-st.plotly_chart(fig, use_container_width=True)
+    fig = px.line(data, x="year", y="value", color="source", title="Net Worth")
+    st.plotly_chart(fig, use_container_width=True)
+    
