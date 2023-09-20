@@ -14,6 +14,7 @@ n = st.sidebar.slider("Timeline (years)", value=35, max_value=50)
 st.sidebar.markdown('# Economic conditions')
 market_rate = st.sidebar.number_input('Stock Market rate', value=0.05, format='%f')
 appreciation_rate = st.sidebar.number_input('House Market rate', value=0.02, format='%f', key=10)
+rent_increase_rate = st.sidebar.number_input('Rent increase rate', value=0.02)
 inflation_rate = st.sidebar.number_input('Inflation rate', value=0.02, format='%f')
 monthly_salary = st.sidebar.number_input('Available money', value=300_000)
 salary_increase_rate = st.sidebar.number_input('Available money increase rate', value=0.0, format='%f')
@@ -25,10 +26,15 @@ with tabs[1]:
     monthtly_rent = st.number_input('Monthly rent', value=120000, key='1')
     renewal_fee = st.number_input('Renewal fee', value=240000, key='4')
 
-    bank_rent = Bank(initial_deposit=0, interest_rate=market_rate)
+    bank_rent = Bank(
+        initial_deposit=0,
+        interest_rate=market_rate,
+        inflation_rate=inflation_rate
+    )
     rent = Rent(
         monthly_rent=monthtly_rent, 
         renewal_fee=renewal_fee,
+        rent_increase_rate=rent_increase_rate,
         inflation_rate=inflation_rate
     )
 
@@ -43,7 +49,11 @@ with tabs[2]:
     mortage_period2 = st.number_input('Mortgage period', value=25, key=12)
     mortgage_rate2 = st.number_input('Mortgage rate', value=0.005, key=13)
 
-    bank_buy = Bank(initial_deposit=0, interest_rate=market_rate)
+    bank_buy = Bank(
+        initial_deposit=0, 
+        interest_rate=market_rate,
+        inflation_rate=inflation_rate
+    )
     house = RealEstate(
         house_value=house_price,
         land_value=land_price,

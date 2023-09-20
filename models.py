@@ -67,16 +67,17 @@ class Bank:
 
 class Rent:
 
-    def __init__(self, monthly_rent, renewal_fee, inflation_rate=0):
+    def __init__(self, monthly_rent, renewal_fee, rent_increase_rate, inflation_rate=0):
         self.monthly_rent = monthly_rent
         self.inflation_rate = inflation_rate
         self.renewal_fee = renewal_fee
+        self.rent_increase_rate = rent_increase_rate
 
     def cashflow(self, year):
         value = self.monthly_rent * 12 
         if year % 2 == 0:
             value += self.renewal_fee
-        return -value / (1 + self.inflation_rate)**year
+        return -value * ((1 + self.rent_increase_rate) / (1 + self.inflation_rate))**year
 
     def value_at_year(self, year):
         return 0
