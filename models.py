@@ -39,7 +39,7 @@ class RealEstate:
         return value / (1 + self.inflation_rate)**n
 
     def cashflow(self, year):
-        return -self.down_payment if year == 0 else 0 / (1 + self.inflation_rate)**year
+        return -self.down_payment if year == 0 else 0
 
 
 class Bank:
@@ -54,7 +54,7 @@ class Bank:
         self.cashflows.append(amount)
 
     def value_at_year(self, year):
-        value = 0
+        value = self.initial_deposit
         for cf in self.cashflows[:year+1]:
             value += cf
             if value > 0:
@@ -62,7 +62,7 @@ class Bank:
         return value / (1 + self.inflation_rate)**year
 
     def cashflow(self, year):
-        return 0 / (1 + self.inflation_rate)**year
+        return 0
 
 
 class Rent:
@@ -77,7 +77,7 @@ class Rent:
         value = self.monthly_rent * 12 
         if year % 2 == 0:
             value += self.renewal_fee
-        return -value * ((1 + self.rent_increase_rate) / (1 + self.inflation_rate))**year
+        return -value * (1 + self.rent_increase_rate)
 
     def value_at_year(self, year):
         return 0
@@ -99,7 +99,7 @@ class Loan:
 
     def cashflow(self, year):
         value = -self.monthly_payment * 12 if year < self.term else 0
-        return value / (1 + self.inflation_rate)**year
+        return value
 
     def value_at_year(self, year):
         value =  -(float(self.loan.total_paid) - self.monthly_payment * 12 * (year + 1))
@@ -116,7 +116,7 @@ class Salary:
 
     def cashflow(self, year):
         value = self.monthly_salary * 12 + self.yearly_bonus 
-        return value * ((1 + self.increase_rate)/ (1 + self.inflation_rate))**year
+        return value * (1 + self.increase_rate)
 
 
 if __name__ == '__main__':
