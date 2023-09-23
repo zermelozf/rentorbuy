@@ -60,7 +60,6 @@ with tabs[1]:
             'cashflow': cashflow,
             'value': assets,
             'salaries': np.sum(salaries[:year + 1]),
-            'irr': np.exp(np.log((assets) / np.sum(salaries[:year + 1])) / (year + 1)) - 1,
             'source': 'Rent'
         })
     rent_data = pd.DataFrame(data)
@@ -117,7 +116,6 @@ with tabs[2]:
             'cashflow': cashflow,
             'value': assets + liabilities,
             'salaries': np.sum(salaries[:year + 1]),
-            'irr': np.exp(np.log((assets + liabilities) / np.sum(salaries[:year+1])) / (year + 1)) - 1,
             'source': 'Buy'
         })
 
@@ -136,5 +134,3 @@ with tabs[0]:
     fig = px.line(data, x="year", y="value", color="source", title="Net Worth (万円)")
     st.plotly_chart(fig, use_container_width=True)
 
-    fig = px.line(data, x="year", y="irr", color="source", title="Return on investment")
-    st.plotly_chart(fig, use_container_width=True)

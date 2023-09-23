@@ -77,7 +77,7 @@ class Rent:
         value = self.monthly_rent * 12 
         if year % 2 == 0:
             value += self.renewal_fee
-        return -value * (1 + self.rent_increase_rate)
+        return -value * (1 + self.rent_increase_rate)**year
 
     def value_at_year(self, year):
         return 0
@@ -119,7 +119,7 @@ class Salary:
         if year >= self.years_until_retirement:
             return 0
         value = self.monthly_salary * 12 + self.yearly_bonus 
-        return value * (1 + self.increase_rate)
+        return value * (1 + self.increase_rate)**year
 
 
 if __name__ == '__main__':
