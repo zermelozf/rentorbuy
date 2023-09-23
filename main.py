@@ -19,19 +19,24 @@ inflation_rate = st.sidebar.number_input('Inflation rate', value=0.0, format='%f
 monthly_salary = st.sidebar.number_input('Monthly budget (万円)', value=30)
 starting_balance = st.sidebar.number_input('Starting bank balance (万円)', value=3000)
 salary_increase_rate = st.sidebar.number_input('Monthly budget increase rate', value=0.0, format='%f')
+year_until_retirement = st.sidebar.number_input('Years until retirement', value=30)
 
-tabs = st.tabs(["Summary", "Rent", "Buy #1", "Buy #2"])
+tabs = st.tabs(["Summary", "Rent", "Buy"]) #, "Buy #2"])
 
 salary = Salary(
     monthly_salary=monthly_salary,
     yearly_bonus=0,
     increase_rate=salary_increase_rate,
+    years_until_retirement=year_until_retirement,
     inflation_rate=inflation_rate
 )
 
+salaries = [salary.cashflow(year) for year in range(n)]
+salaries[0] += starting_balance
+
 with tabs[1]:
     st.markdown('## Rent')
-    monthtly_rent = st.number_input('Monthly rent (万円)', value=12, key='1')
+    monthtly_rent = st.number_input('Monthly rent (万円)', value=24, key='1')
     renewal_fee = st.number_input('Renewal fee (万円)', value=24, key='4')
 
     bank_rent = Bank(
@@ -54,15 +59,12 @@ with tabs[1]:
             'year': year,
             'cashflow': cashflow,
             'value': assets,
+            'salaries': np.sum(salaries[:year + 1]),
+            'irr': np.exp(np.log((assets) / np.sum(salaries[:year + 1])) / (year + 1)) - 1,
             'source': 'Rent'
         })
-    
     rent_data = pd.DataFrame(data)
-    fig = px.bar(rent_data, x="year", y="cashflow", color="source", barmode='group', title="Cashflow (万円)")
-    st.plotly_chart(fig, use_container_width=True)
-
-    fig = px.line(rent_data, x="year", y="value", color="source", title="Net Worth (万円)")
-    st.plotly_chart(fig, use_container_width=True)
+    rent_data
     
 
 with tabs[2]:
@@ -114,74 +116,25 @@ with tabs[2]:
             'year': year,
             'cashflow': cashflow,
             'value': assets + liabilities,
-            'source': 'Buy #1'
+            'salaries': np.sum(salaries[:year + 1]),
+            'irr': np.exp(np.log((assets + liabilities) / np.sum(salaries[:year+1])) / (year + 1)) - 1,
+            'source': 'Buy'
         })
+
     buy1_data = pd.DataFrame(data)
-    fig = px.bar(buy1_data, x="year", y="cashflow", color="source", barmode='group', title="Cashflow (万円)")
-    st.plotly_chart(fig, use_container_width=True)
-
-    fig = px.line(buy1_data, x="year", y="value", color="source", title="Net Worth (万円)")
-    st.plotly_chart(fig, use_container_width=True)
-
-with tabs[3]:
-    st.markdown('# House')
-    house_price = st.number_input('House price (万円)', value=4000, key=27)
-    land_price = st.number_input('Land price (万円)', value=6000, key=28)
-    broker_fee = st.number_input('Broker fee', format='%f', value=0.07, key=29)
-
-    st.markdown('# Financing')
-    principal2 = st.number_input('Mortgage amount (万円)', value=int(0.9 * (house_price + land_price)), key=211)
-    mortage_period2 = st.number_input('Mortgage period', value=25, key=212)
-    mortgage_rate2 = st.number_input('Mortgage rate', format='%f', value=0.005, key=213)
-
-    bank_buy = Bank(
-        initial_deposit=starting_balance, 
-        interest_rate=market_rate,
-        inflation_rate=inflation_rate
-    )
-    house = RealEstate(
-        house_value=house_price,
-        land_value=land_price,
-        down_payment=(house_price + land_price) * (1 + broker_fee) - principal2,
-        broker_fee=broker_fee,
-        market_rate=appreciation_rate,
-        inflation_rate=inflation_rate
-    )
-    loan = Loan(
-        principal=principal2,
-        yearly_interest=mortgage_rate2,
-        term=mortage_period2,
-        inflation_rate=inflation_rate
-    )
-    data = []
-    for year in range(n):
-        cashflow = house.cashflow(year) + loan.cashflow(year) + salary.cashflow(year)
-        bank_buy.add_cash(cashflow)
-        assets = house.value_at_year(year) + bank_buy.value_at_year(year)
-        liabilities = loan.value_at_year(year)
-        
-        data.append({
-            'year': year,
-            'cashflow': cashflow,
-            'value': assets + liabilities,
-            'source': 'Buy #2'
-        })
-    buy2_data = pd.DataFrame(data)
-    fig = px.bar(buy2_data, x="year", y="cashflow", color="source", barmode='group', title="Cashflow (万円)")
-    st.plotly_chart(fig, use_container_width=True)
-
-    fig = px.line(buy2_data, x="year", y="value", color="source", title="Net Worth (万円)")
-    st.plotly_chart(fig, use_container_width=True)
+    buy1_data
 
 
 with tabs[0]:
     st.subheader("Rent Or Buy")
 
     
-    data = pd.concat([rent_data, buy1_data, buy2_data])
-    fig = px.bar(data, x="year", y="cashflow", color="source", barmode='group', title="Cashflow (万円)")
+    data = pd.concat([rent_data, buy1_data])
+    fig = px.bar(data, x="year", y="cashflow", color="source", barmode='group', title="Cash to invest (万円)")
     st.plotly_chart(fig, use_container_width=True)
 
     fig = px.line(data, x="year", y="value", color="source", title="Net Worth (万円)")
     st.plotly_chart(fig, use_container_width=True)
-    
+
+    fig = px.line(data, x="year", y="irr", color="source", title="Return on investment")
+    st.plotly_chart(fig, use_container_width=True)

@@ -108,13 +108,16 @@ class Loan:
 
 class Salary:
 
-    def __init__(self, monthly_salary, yearly_bonus=0, increase_rate=0, inflation_rate=0):
+    def __init__(self, monthly_salary, yearly_bonus=0, years_until_retirement=30, increase_rate=0, inflation_rate=0):
         self.monthly_salary = monthly_salary
         self.yearly_bonus = yearly_bonus
         self.increase_rate = increase_rate
         self.inflation_rate = inflation_rate
+        self.years_until_retirement = years_until_retirement
 
     def cashflow(self, year):
+        if year >= self.years_until_retirement:
+            return 0
         value = self.monthly_salary * 12 + self.yearly_bonus 
         return value * (1 + self.increase_rate)
 
