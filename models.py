@@ -10,6 +10,8 @@ class RealEstate:
     def __init__(
             self, 
             house_value, 
+            house_age,
+            fully_amortized_age,
             land_value, 
             down_payment=0, 
             property_type='HOUSE',
@@ -18,6 +20,8 @@ class RealEstate:
             inflation_rate=0
         ):
         self.house_value = house_value
+        self.house_age = house_age
+        self.fully_amortized_age = fully_amortized_age
         self.land_value = land_value
         self.down_payment = down_payment
         self.property_type = property_type
@@ -29,12 +33,9 @@ class RealEstate:
     def total_cost(self):
         return (self.house_value + self.land_value) * (1 + self.broker_fee)
 
-    @property
-    def amortization_period(self):
-        return 26 if self.property_type == 'HOUSE' else 45
 
     def value_at_year(self, n):
-        value = self.land_value + self.house_value * (1 - min(1, n / self.amortization_period))
+        value = self.land_value + self.house_value * (1 - min(1, (n + self.house_age) / self.fully_amortized_age))
         value = (1 - self.broker_fee) * value * (1 + self.market_rate)**n 
         return value / (1 + self.inflation_rate)**n
 
