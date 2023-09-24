@@ -75,8 +75,8 @@ with tabs[2]:
     st.subheader("Property details")
     house_price = st.number_input(f'House price (万円)', value=2000, key=7)
     land_price = st.number_input('Land price (万円)', value=5000, key=8)
-    current_age = st.number_input(f'Current age of the house', value=2000, key=72)
-    max_age = st.number_input(f'Fully amortized age of the house', value=2000, key=73, help='Different property type can have different amortization period. For example, a wooden house will be amortized over 22 years.')
+    current_age = st.number_input(f'Current age of the house', value=0, key=72)
+    max_age = st.number_input(f'Fully amortized age of the house', value=22, key=73, help='Different property type can have different amortization period. For example, a wooden house will be amortized over 22 years.')
     broker_fee = st.number_input('Broker fee', format='%f', value=0.07, key=9)
 
     st.subheader('Loan details')
