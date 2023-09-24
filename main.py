@@ -16,7 +16,7 @@ market_rate = st.sidebar.number_input('Stock Market return', value=0.05, format=
 appreciation_rate = st.sidebar.number_input('House Market return', value=0.02, format='%f', key=10, help='This return is used on the house and land.')
 rent_increase_rate = st.sidebar.number_input('Rent increase rate', value=0.01, help='The yearly rate at which the rent increases.')
 inflation_rate = st.sidebar.number_input('Inflation rate', value=0.02, format='%f', help='The inflation will not affect the value of available cash to invest after all payments. However, it will affect the value of the net worth. Setting the inflation rate to zero will make the Net Value be nominal, anything else will show real net worth.')
-monthly_salary = st.sidebar.number_input('Monthly budget (万円)', value=30, help='This the amount of cash available to pay the rent or loan. If some cash is left after the rent or loan is paid, it will be invested in the stock market.')
+monthly_salary = st.sidebar.number_input('Monthly budget (万円)', value=32, help='This the amount of cash available to pay the rent or loan. If some cash is left after the rent or loan is paid, it will be invested in the stock market.')
 starting_balance = st.sidebar.number_input('Starting bank balance (万円)', value=0, help='This is the balance of your bank account before you buy a house or start renting. This balance can be used to pay the first down payment on the house. Otherwise, it will be invested in the stock market entirely.')
 salary_increase_rate = st.sidebar.number_input('Monthly budget increase rate', value=0.0, format='%f', help=' The yearly rate at which you increase your budget.')
 year_until_retirement = st.sidebar.number_input('Years until retirement', value=30, help='After you retire, your budget will be automatically set to zero.')
@@ -73,8 +73,8 @@ with tabs[1]:
 with tabs[2]:
     col1, col2 = st.columns(2)
     st.subheader("Property details")
-    house_price = st.number_input(f'House price (万円)', value=2000, key=7)
-    land_price = st.number_input('Land price (万円)', value=5000, key=8)
+    house_price = st.number_input(f'House price (万円)', value=3500, key=7)
+    land_price = st.number_input('Land price (万円)', value=7500, key=8)
     current_age = st.number_input(f'Current age of the house', value=0, key=72)
     max_age = st.number_input(f'Fully amortized age of the house', value=22, key=73, help='Different property type can have different amortization period. For example, a wooden house will be amortized over 22 years.')
     broker_fee = st.number_input('Broker fee', format='%f', value=0.07, key=9)
@@ -82,7 +82,7 @@ with tabs[2]:
     st.subheader('Loan details')
     principal2 = st.number_input('Mortgage amount (万円)', value=int(0.9 * (house_price + land_price)), key=11)
     mortgage_rate2 = st.number_input('Mortgage rate', format='%f', value=0.01, key=92)
-    mortage_period2 = st.number_input('Mortgage period', value=25, key=12)
+    mortage_period2 = st.number_input('Mortgage period', value=30, key=12)
 
     bank_buy = Bank(
         initial_deposit=starting_balance, 
