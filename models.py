@@ -12,8 +12,7 @@ class RealEstate:
             house_value, 
             house_age,
             fully_amortized_age,
-            land_value, 
-            down_payment=0, 
+            land_value,
             house_surface=100,
             broker_fee=0.07, 
             market_rate=0.02
@@ -23,13 +22,16 @@ class RealEstate:
         self.house_surface = house_surface
         self.fully_amortized_age = fully_amortized_age
         self.land_value = land_value
-        self.down_payment = down_payment
         self.broker_fee = broker_fee
         self.market_rate = market_rate
 
     @property
     def total_cost(self):
         return (self.house_value + self.land_value) * (1 + self.broker_fee)
+
+    def buy_cost(self):
+        value = self.land_value + self.house_value * (1 - min(1, self.house_age / self.fully_amortized_age))
+        return value * (1 + self.broker_fee)
 
     def _value_at_year(self, n, discount_rate=0.0):
         value = self.land_value + self.house_value * (1 - min(1, (n + self.house_age) / self.fully_amortized_age))
@@ -39,15 +41,13 @@ class RealEstate:
     def value_at_year(self, year, discount_rate=0.0, max_year=50, include_maintainance_cost=False):
         value = self._value_at_year(year, discount_rate=discount_rate)
         if include_maintainance_cost:
-            for y in range(year, max_year + 1):
+            for y in range(year + 1, max_year + 1):
                 value += self.cashflow(y, discount_rate=discount_rate)
         return value
 
     def cashflow(self, year, discount_rate=0.0):
         flow = -self._value_at_year(year) * (.04 / 6 *  + .03 / 3)
-        if year == 0:
-            flow -= self.down_payment
-        elif (year % 15) == 0:
+        if ((self.house_age + year) % 15) == 0:
             flow -= 500 * self.house_surface / 100
         return flow / (1 + discount_rate)**year
 
@@ -94,7 +94,7 @@ class Rent:
 
 class Loan:
 
-    def __init__(self, principal, yearly_interest, term):
+    def __init__(self, principal, yearly_interest, term, first_payment):
         self.loan = mortgage.Loan(
             principal=principal,
             interest=yearly_interest,
@@ -104,9 +104,12 @@ class Loan:
         self.principal = principal
         self.interest = yearly_interest
         self.term = term
+        self.first_payment = first_payment
 
     def cashflow(self, year, discount_rate=0.0):
         flow = -self.monthly_payment * 12 if year < self.term else 0
+        if year == 0:
+            flow -= self.first_payment
         return flow / (1 + discount_rate)**year
 
     def value_at_year(self, year, discount_rate=0.0):

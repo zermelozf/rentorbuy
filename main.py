@@ -83,14 +83,14 @@ with tabs[2]:
         house_age=current_age,
         fully_amortized_age=max_age,
         land_value=land_price,
-        down_payment=(house_price + land_price) * (1 + broker_fee) - principal,
         broker_fee=broker_fee,
         market_rate=appreciation_rate
     )
     loan = Loan(
         principal=principal,
         yearly_interest=mortgage_rate,
-        term=mortage_period
+        term=mortage_period,
+        first_payment=house.buy_cost() - principal
     )
     buy_bank = Bank(initial_deposit=0, interest_rate=market_rate)
 
