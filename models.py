@@ -47,7 +47,7 @@ class RealEstate:
 
     def cashflow(self, year, discount_rate=0.0):
         flow = -self._value_at_year(year) * (.04 / 6 *  + .03 / 3)
-        if (((self.house_age + year) % 15) and (year != 0)) == 0:
+        if (((self.house_age + year) % 15  == 0) and (year != 0)):
             flow -= 500 * self.house_surface / 100
         return flow / (1 + discount_rate)**year
 
