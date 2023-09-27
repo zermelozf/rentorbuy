@@ -43,19 +43,12 @@ class RealEstate:
         return 0
     
     def taxe_cost(self, year):
-        return -self._value_at_year(year) * (.04 / 6 *  + .03 / 3)
+        return -self.value_at_year(year) * (.04 / 6 *  + .03 / 3)
 
-    def _value_at_year(self, n, discount_rate=0.0):
-        value = self.land_value + self.house_value * (1 - min(1, (n + self.house_age) / self.fully_amortized_age))
-        value *= (1 - self.broker_fee) * (1 + self.market_rate)**n
-        return value / (1 + discount_rate)**n
-
-    def value_at_year(self, year, discount_rate=0.0, max_year=50, include_maintainance_cost=False):
-        value = self._value_at_year(year, discount_rate=discount_rate)
-        if include_maintainance_cost:
-            for y in range(year + 1, max_year + 1):
-                value += self.cashflow(y, discount_rate=discount_rate)
-        return value
+    def value_at_year(self, year, discount_rate=0.0):
+        value = self.land_value + self.house_value * (1 - min(1, (year + self.house_age) / self.fully_amortized_age))
+        value *= (1 - self.broker_fee) * (1 + self.market_rate)**year
+        return value / (1 + discount_rate)**year
 
     def cashflow(self, year, discount_rate=0.0):
         flow = self.taxe_cost(year)

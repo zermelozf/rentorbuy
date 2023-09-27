@@ -94,6 +94,8 @@ data = {
     'year': [],
     'saved_rent': [],
     'cashflow': [],
+    'house value': [],
+    'loan value': [],
     'npv': [],
     'irr': [],
     'total cost': [],
@@ -106,18 +108,21 @@ for year in range(n + 1):
     cost.append({'year': year, 'cost': house.maintenance_cost(year), 'source': 'maintenance cost'})
     cost.append({'year': year, 'cost': house.taxe_cost(year), 'source': 'taxes'})
     data['year'].append(year)
-    data['saved_rent'].append(rent.cashflow(year))
+    data['saved_rent'].append(-rent.cashflow(year))
     data['cashflow'].append(house.cashflow(year) + loan.cashflow(year))
-    cashflow_with_sale = np.array(data['cashflow']) - np.array(data['saved_rent'])
-    sale_revenue = (
-        house.value_at_year(year, max_year=n, include_maintainance_cost=include_maintainance_cost) + 
-        loan.value_at_year(year, discount_rate=discount_rate)
-    )
+    cashflow_with_sale = np.array(data['cashflow']) + np.array(data['saved_rent'])
+    data['total cost'].append(np.sum(cashflow_with_sale))
+    data['house value'].append(house.value_at_year(year))
+    data['loan value'].append(loan.value_at_year(year))
+    sale_revenue = house.value_at_year(year) + loan.value_at_year(year)
+    if include_maintainance_cost:
+        for y in range(year + 1, n + 1):
+            sale_revenue += house.cashflow(y, discount_rate=discount_rate)
+    data['total revenue'].append(sale_revenue)
+
     cashflow_with_sale[-1] += sale_revenue
     data['npv'].append(npf.npv(discount_rate, cashflow_with_sale))
     data['irr'].append(round(npf.irr(cashflow_with_sale), year))
-    data['total cost'].append(np.sum(cashflow_with_sale[:-1]))
-    data['total revenue'].append(sale_revenue)
 data = pd.DataFrame(data)
 
 
