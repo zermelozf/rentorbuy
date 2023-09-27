@@ -129,7 +129,7 @@ data = pd.DataFrame(data)
 
 
 with tabs[0]:
-    st.subheader("Rent Or Buy")
+    st.subheader("Rent Or Buy?")
 
     for y, v in enumerate(data['npv']):
         if v >= 0:
