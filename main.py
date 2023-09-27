@@ -140,7 +140,7 @@ with tabs[0]:
     fig = px.bar(data, x="year", y="cashflow", title="Yearly Cashflow (nominal 万円)")
     st.plotly_chart(fig, use_container_width=True)
 
-    st.info(f"In order to maximize your investment's rate of return, you should :orange[**sell after {np.argmax(data['irr'])} years.**]", icon="ℹ️")
+    st.info(f"In order to maximize your investment's rate of return, you should :orange[**sell after {np.argmax(data['irr'])} years.**] This way you make the best use of leverage on your loan.", icon="ℹ️")
 
     fig = px.line(data, x="year", y="irr", title="Internal Rate of Return")
     st.plotly_chart(fig, use_container_width=True)
