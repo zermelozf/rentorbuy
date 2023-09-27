@@ -132,16 +132,16 @@ with tabs[0]:
             break
     st.info(f"Buying a house is more interesting if you intend to :orange[**stay for more than {y} years**]. For shorter periods, renting is more interesting financially.", icon="ℹ️")
     
-    fig = px.line(data, x="year", y="npv", title=f"Net Present Value (real 万円)")
+    fig = px.line(data, x="year", y="npv", title=f"Net Present Value of buying a house (real 万円)")
     st.plotly_chart(fig, use_container_width=True)
 
     st.info(f"Your :orange[**loan will cost {int(loan.monthly_payment * 10000):,} JPY/month**] or {int(loan.monthly_payment * 12 * 10000):,} JPY/year. You will also need to pay for maintenance, and taxes for your home.", icon="ℹ️")
     
-    fig = px.bar(data, x="year", y="cashflow", title="Yearly Cashflow (nominal 万円)")
+    fig = px.bar(data, x="year", y="cashflow", title="Yearly Cashflow if buying a house (nominal 万円)")
     st.plotly_chart(fig, use_container_width=True)
 
-    st.info(f"In order to maximize your investment's rate of return, you should :orange[**sell after {np.argmax(data['irr'])} years.**] This way you make the best use of leverage on your loan.", icon="ℹ️")
+    st.info(f"In order to maximize your investment's rate of return, you should :orange[**sell after {np.argmax(data['irr'])} years.**]", icon="ℹ️")
 
-    fig = px.line(data, x="year", y="irr", title="Internal Rate of Return")
+    fig = px.line(data, x="year", y="irr", title="Internal Rate of Return if buying a house")
     st.plotly_chart(fig, use_container_width=True)
 
