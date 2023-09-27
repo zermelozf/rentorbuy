@@ -1,5 +1,6 @@
 mortgage==1.0.5
 numpy==1.26.0
+numpy-financial==1.0.0
 pandas==2.1.0
 plotly==5.17.0
 streamlit==1.26.0
