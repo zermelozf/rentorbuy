@@ -107,20 +107,24 @@ data = {
     'saved_rent': [],
     'cashflow': [],
     'npv': [],
-    'irr': []
+    'irr': [],
+    'total cost': [],
+    'total revenue': []
 }
 for year in range(n + 1):
     data['year'].append(year)
     data['saved_rent'].append(rent.cashflow(year))
     data['cashflow'].append(house.cashflow(year) + loan.cashflow(year))
     cashflow_with_sale = np.array(data['cashflow']) - np.array(data['saved_rent'])
-    sale_money = (
+    sale_revenue = (
         house.value_at_year(year, max_year=n, include_maintainance_cost=include_maintainance_cost) + 
         loan.value_at_year(year, discount_rate=discount_rate)
     )
-    cashflow_with_sale[-1] += sale_money
+    cashflow_with_sale[-1] += sale_revenue
     data['npv'].append(npf.npv(discount_rate, cashflow_with_sale))
     data['irr'].append(round(npf.irr(cashflow_with_sale), year))
+    data['total cost'].append(np.sum(cashflow_with_sale[:-1]))
+    data['total revenue'].append(sale_revenue)
 data = pd.DataFrame(data)
 
 
@@ -140,7 +144,9 @@ with tabs[0]:
     fig = px.bar(data, x="year", y="cashflow", title="Yearly Cashflow if buying a house (nominal 万円)")
     st.plotly_chart(fig, use_container_width=True)
 
-    st.info(f"In order to maximize your investment's rate of return, you should :orange[**sell after {np.argmax(data['irr'])} years.**]", icon="ℹ️")
+    b = np.argmax(data['irr'])
+    c = -int(data['total cost'][b] * 10000)
+    st.info(f"In order to maximize your investment's rate of return, you should :orange[**sell after {b} years.**] The investment will have cost you {c:,} JPY {'more' if c > 0 else 'less'} than renting {'but' if c > 0 else 'and'} you will pocket {int(data['total revenue'][b] * 10000):,} JPY when selling the house.", icon="ℹ️")
 
     fig = px.line(data, x="year", y="irr", title="Internal Rate of Return if buying a house")
     st.plotly_chart(fig, use_container_width=True)
