@@ -19,29 +19,12 @@ appreciation_rate = st.sidebar.number_input(
     format='%f',
     help='This return is used on the house and land.'
 )
-inflation_rate = st.sidebar.number_input(
-    'Inflation rate', 
+discount_rate = st.sidebar.number_input(
+    'Discount rate', 
     value=0.02, 
     format='%f',
-    help='Used to discount the future value of future payments. It will affect the real NPV of the project.'
+    help='Money today is worth more than money tomorrow. For example, you could invest 1 unit today in stocks and get 1.1 units in a year, or a 10% rate. '
 )
-invest_difference = False  # st.sidebar.checkbox(
-#     "Invest difference in the stock market", 
-#     value=False, 
-#     help="If the monthly cost of renting is cheaper than that of buying, you can invest the difference in stocks. Same thing if it is the other way around."
-# )
-market_rate = 0
-if invest_difference:
-    market_rate = st.sidebar.number_input(
-        'Stock Market return', 
-        value=0.05, 
-        format='%f',
-        help='This return is used for inveting any cash left after paying the rent and/or loan into the stock market.'
-    )
-
-discount_rate = inflation_rate
-if invest_difference:
-    discount_rate = (1 + inflation_rate) * (1 + market_rate) - 1
 
 tabs = st.tabs(["Summary", "Rent", "Buy"])
 
@@ -71,6 +54,9 @@ with tabs[2]:
         value=22,
         help='Different property type can have different amortization period. For example, a wooden house will be amortized over 22 years.'
     )
+    surface = st.number_input('Surface (m^2)', value=100)
+    maintenance_fee = st.number_input('Maintenance fee (万円)', value=5 * surface)
+    maintenance_frequency = st.number_input('Maintenance frequency (in years)', value=15)
     broker_fee = st.number_input('Broker fee', format='%f', value=0.07)
     include_maintainance_cost = st.checkbox(
         "Discount maintenance cost when selling", 
@@ -84,7 +70,9 @@ with tabs[2]:
         fully_amortized_age=max_age,
         land_value=land_price,
         broker_fee=broker_fee,
-        market_rate=appreciation_rate
+        market_rate=appreciation_rate,
+        maintenance_fee=maintenance_fee,
+        maintenance_frequency=maintenance_frequency
     )
 
     st.subheader('Loan details')
@@ -111,7 +99,12 @@ data = {
     'total cost': [],
     'total revenue': []
 }
+cost = []
 for year in range(n + 1):
+    cost.append({'year': year, 'cost': loan.down_payment(year), 'source': 'down payment'})
+    cost.append({'year': year, 'cost': loan.cashflow(year) - loan.down_payment(year), 'source': 'loan'})
+    cost.append({'year': year, 'cost': house.maintenance_cost(year), 'source': 'maintenance cost'})
+    cost.append({'year': year, 'cost': house.taxe_cost(year), 'source': 'taxes'})
     data['year'].append(year)
     data['saved_rent'].append(rent.cashflow(year))
     data['cashflow'].append(house.cashflow(year) + loan.cashflow(year))
@@ -139,15 +132,17 @@ with tabs[0]:
     fig = px.line(data, x="year", y="npv", title=f"Net Present Value of buying a house (real 万円)")
     st.plotly_chart(fig, use_container_width=True)
 
-    st.info(f"Your :orange[**loan will cost {int(loan.monthly_payment * 10000):,} JPY/month**] or {int(loan.monthly_payment * 12 * 10000):,} JPY/year. You will also need to pay for maintenance, and taxes for your home.", icon="ℹ️")
+    st.info(f"Your :orange[**loan will cost {int(loan.monthly_payment * 10000):,} JPY/month**] or {int(loan.monthly_payment * 12 * 10000):,} JPY/year. You will also need to pay for the maintenance cost, and taxes for your home.", icon="ℹ️")
     
-    fig = px.bar(data, x="year", y="cashflow", title="Yearly Cashflow if buying a house (nominal 万円)")
+    fig = px.bar(cost, x="year", y="cost", color="source", title="Yearly Cashflow if buying a house (nominal 万円)")
     st.plotly_chart(fig, use_container_width=True)
 
     b = np.argmax(data['irr'])
     c = -int(data['total cost'][b] * 10000)
-    st.info(f"In order to maximize your investment's rate of return, you should :orange[**sell after {b} years.**] The investment will have cost you {c:,} JPY {'more' if c > 0 else 'less'} than renting {'but' if c > 0 else 'and'} you will pocket {int(data['total revenue'][b] * 10000):,} JPY when selling the house.", icon="ℹ️")
+    st.info(f"In order to maximize your investment's rate of return, you should :orange[**sell after {b} years.**] The investment will have cost you {c:,} JPY {'more' if c > 0 else 'less'} than renting {'but' if c > 0 else 'and'} you will pocket {int(data['total revenue'][b] * 10000):,} JPY when selling the house. That represents a :orange[**{data['irr'][b] * 100:.2f}% yearly rate of return**] on your cashflow.", icon="ℹ️")
 
     fig = px.line(data, x="year", y="irr", title="Internal Rate of Return if buying a house")
     st.plotly_chart(fig, use_container_width=True)
+
+    data
 

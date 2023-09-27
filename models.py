@@ -15,7 +15,9 @@ class RealEstate:
             land_value,
             house_surface=100,
             broker_fee=0.07, 
-            market_rate=0.02
+            market_rate=0.02,
+            maintenance_fee=500,
+            maintenance_frequency=15
         ):
         self.house_value = house_value
         self.house_age = house_age
@@ -24,6 +26,8 @@ class RealEstate:
         self.land_value = land_value
         self.broker_fee = broker_fee
         self.market_rate = market_rate
+        self.maintenance_fee = maintenance_fee
+        self.maintenance_frequency = maintenance_frequency
 
     @property
     def total_cost(self):
@@ -32,6 +36,14 @@ class RealEstate:
     def buy_cost(self):
         value = self.land_value + self.house_value * (1 - min(1, self.house_age / self.fully_amortized_age))
         return value * (1 + self.broker_fee)
+
+    def maintenance_cost(self, year):
+        if (((self.house_age + year) % self.maintenance_frequency  == 0) and (year != 0)):
+            return -self.maintenance_fee
+        return 0
+    
+    def taxe_cost(self, year):
+        return -self._value_at_year(year) * (.04 / 6 *  + .03 / 3)
 
     def _value_at_year(self, n, discount_rate=0.0):
         value = self.land_value + self.house_value * (1 - min(1, (n + self.house_age) / self.fully_amortized_age))
@@ -46,9 +58,8 @@ class RealEstate:
         return value
 
     def cashflow(self, year, discount_rate=0.0):
-        flow = -self._value_at_year(year) * (.04 / 6 *  + .03 / 3)
-        if (((self.house_age + year) % 15  == 0) and (year != 0)):
-            flow -= 500 * self.house_surface / 100
+        flow = self.taxe_cost(year)
+        flow += self.maintenance_cost(year)
         return flow / (1 + discount_rate)**year
 
 
@@ -106,10 +117,14 @@ class Loan:
         self.term = term
         self.first_payment = first_payment
 
+    def down_payment(self, year):
+        if year == 0:
+            return -self.first_payment
+        return 0
+
     def cashflow(self, year, discount_rate=0.0):
         flow = -self.monthly_payment * 12 if year < self.term else 0
-        if year == 0:
-            flow -= self.first_payment
+        flow += self.down_payment(year)
         return flow / (1 + discount_rate)**year
 
     def value_at_year(self, year, discount_rate=0.0):
