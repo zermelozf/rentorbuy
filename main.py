@@ -97,11 +97,11 @@ with tabs[2]:
 data = {
     'year': [],
     'saved_rent': [],
-    'cashflow': [],
+    'cashflow (万円)': [],
     'house value': [],
     'loan value': [],
-    'npv': [],
-    'irr': [],
+    'npv (万円)': [],
+    'irr (%)': [],
     'total cost': [],
     'total revenue': []
 }
@@ -109,8 +109,8 @@ cost = []
 for year in range(n + 1):
     data['year'].append(year)
     data['saved_rent'].append(-rent.cashflow(year))
-    data['cashflow'].append(house.cashflow(year) + loan.cashflow(year))
-    cashflow_with_sale = np.array(data['cashflow']) + np.array(data['saved_rent'])
+    data['cashflow (万円)'].append(house.cashflow(year) + loan.cashflow(year))
+    cashflow_with_sale = np.array(data['cashflow (万円)']) + np.array(data['saved_rent'])
     data['total cost'].append(np.sum(cashflow_with_sale))
     data['house value'].append(house.value_at_year(year))
     data['loan value'].append(loan.value_at_year(year))
@@ -119,12 +119,12 @@ for year in range(n + 1):
         for y in range(year + 1, n + 1):
             sale_revenue += house.cashflow(y, discount_rate=inflation_rate)
     data['total revenue'].append(sale_revenue)
-    cost.append({'year': year, 'cashflow': rent.cashflow(year), 'revenue': 0, 'source': 'rent'})
-    cost.append({'year': year, 'cashflow': loan.cashflow(year) + house.cashflow(year), 'revenue': sale_revenue, 'source': 'buy & sell'})
+    cost.append({'year': year, 'cashflow (万円)': rent.cashflow(year), 'revenue': 0, 'source': 'rent'})
+    cost.append({'year': year, 'cashflow (万円)': loan.cashflow(year) + house.cashflow(year), 'revenue': sale_revenue, 'source': 'buy & sell'})
 
     cashflow_with_sale[-1] += sale_revenue
-    data['npv'].append(npf.npv(discount_rate, cashflow_with_sale))
-    data['irr'].append(round(npf.irr(cashflow_with_sale), year))
+    data['npv (万円)'].append(npf.npv(discount_rate, cashflow_with_sale))
+    data['irr (%)'].append(round(npf.irr(cashflow_with_sale) * 100, 2))
 data = pd.DataFrame(data)
 cost = pd.DataFrame(cost)
 
@@ -138,7 +138,7 @@ with tabs[0]:
                 "visualize the results.")
     else:
         should_buy = False
-        for y, v in enumerate(data['npv']):
+        for y, v in enumerate(data['npv (万円)']):
             if v >= 0:
                 should_buy = True
                 break
@@ -152,26 +152,26 @@ with tabs[0]:
                 f":orange[**You should rent.**] Buying a house is not an interesting compared to an alternative "
                 f"that can deliver a {int(discount_rate * 100):.0f}% return on investment.", icon="ℹ️")
         
-        fig = px.line(data, x="year", y="npv", title=f"Net Present Value of buying a house (real 万円)")
+        fig = px.line(data, x="year", y="npv (万円)", title=f"Net Present Value of buying a house")
         st.plotly_chart(fig, use_container_width=True)
         
-        b = np.argmax(data['irr'])
+        b = np.argmax(data['irr (%)'])
         c = -int(data['total cost'][b] * 10000)
         st.info(f"If you buy a house, in order to maximize your investment's rate of return, you should :orange[**sell "
-                f"after {b} years.**] This will get you a :orange[**{data['irr'][b] * 100:.2f}% yearly rate of "
+                f"after {b} years.**] This will get you a :orange[**{data['irr (%)'][b]:.2f}% yearly rate of "
                 f"return**]", icon="ℹ️")
        
-        fig = px.line(data, x="year", y="irr", title="Internal Rate of Return if buying a house")
+        fig = px.line(data, x="year", y="irr (%)", title="Internal Rate of Return of buying a house")
         st.plotly_chart(fig, use_container_width=True)
 
 
         st.info(f"Overall, the investment over {b} years will cost you {c:,} JPY {'more' if c > 0 else 'less'} than renting "
-                f"{'but' if c > 0 else 'and'} :orange[**you will pocket {int((data['total revenue'][b] +  data['cashflow'][b])* 10000):,} JPY when "
+                f"{'but' if c > 0 else 'and'} :orange[**you will pocket {int((data['total revenue'][b] +  data['cashflow (万円)'][b])* 10000):,} JPY when "
                 f"selling the house.**]", icon="ℹ️")
         
 
         data = cost.loc[cost['year'] <= b, :]
         data.loc[data['year'] != b, 'revenue'] = 0
-        data['cashflow'] += data['revenue']
-        fig = px.bar(data, x="year", y="cashflow", color="source", barmode="group", title="Yearly Cashflow (nominal 万円)")
+        data['cashflow (万円)'] += data['revenue']
+        fig = px.bar(data, x="year", y="cashflow (万円)", color="source", barmode="group", title="Yearly Cashflow")
         st.plotly_chart(fig, use_container_width=True)
