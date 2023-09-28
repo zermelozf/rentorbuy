@@ -125,6 +125,9 @@ for year in range(n + 1):
     cashflow_with_sale[-1] += sale_revenue
     data['npv (万円)'].append(npf.npv(discount_rate, cashflow_with_sale))
     data['irr (%)'].append(round(npf.irr(cashflow_with_sale) * 100, 2))
+    print(year)
+    print(cashflow_with_sale, npf.irr(cashflow_with_sale))
+    print(sale_revenue)
 data = pd.DataFrame(data)
 cost = pd.DataFrame(cost)
 
@@ -145,8 +148,8 @@ with tabs[0]:
         
         if should_buy:
             st.info(
-                f"Buying a house is more interesting if you intend to :orange[**stay for more than {y} years**]. "
-                "For shorter periods, renting is more interesting financially.", icon="ℹ️")
+                f"Buying a house is more interesting if you intend to :orange[**stay in it for more than {y} years**]. "
+                "For a shorter period of time, renting is more interesting financially.", icon="ℹ️")
         else:
             st.warning(
                 f":orange[**You should rent.**] Buying a house is not an interesting compared to an alternative "
@@ -157,9 +160,9 @@ with tabs[0]:
         
         b = np.argmax(data['irr (%)'])
         c = -int(data['total cost'][b] * 10000)
-        st.info(f"If you buy a house, in order to maximize your investment's rate of return, you should :orange[**sell "
-                f"after {b} years.**] This will get you a :orange[**{data['irr (%)'][b]:.2f}% yearly rate of "
-                f"return**]", icon="ℹ️")
+        st.info(f"If you buy a house, in order to maximize your investment's rate of return, you should :orange[**resell "
+                f"it after {b} years.**] This will get you a :orange[**{data['irr (%)'][b]:.2f}% annualized rate of "
+                f"return.**]", icon="ℹ️")
        
         fig = px.line(data, x="year", y="irr (%)", title="Internal Rate of Return of buying a house")
         st.plotly_chart(fig, use_container_width=True)
@@ -175,3 +178,4 @@ with tabs[0]:
         data['cashflow (万円)'] += data['revenue']
         fig = px.bar(data, x="year", y="cashflow (万円)", color="source", barmode="group", title="Yearly Cashflow")
         st.plotly_chart(fig, use_container_width=True)
+    
