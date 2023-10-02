@@ -33,7 +33,7 @@ tabs = st.tabs(["Summary", "Rent", "Buy"])
 
 with tabs[1]:
     st.markdown('## Rent')
-    monthtly_rent = st.number_input('Monthly rent (万円)', value=12)
+    monthtly_rent = st.number_input('Monthly rent (万円)', value=18)
     renewal_fee = st.number_input('Renewal fee (万円)', value=monthtly_rent)
     rent_increase_rate = st.number_input('Yearly rent increase', value=0.01)
     
@@ -48,12 +48,12 @@ with tabs[1]:
 with tabs[2]:
     col1, col2 = st.columns(2)
     st.subheader("Property details")
-    house_price = st.number_input('House price (万円)', value=0)
-    land_price = st.number_input('Land price (万円)', value=0)
-    current_age = st.number_input('Current age of the house', value=24)
+    house_price = st.number_input('House price (万円)', value=1000)
+    land_price = st.number_input('Land price (万円)', value=8500)
+    current_age = st.number_input('Current age of the house', value=0)
     max_age = st.number_input(
         'Amortization period',
-        value=22,
+        value=15,
         help=("Different property type can have different amortization period. For example, a wooden "
               "house will be amortized over 22 years.")
     )
