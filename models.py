@@ -36,7 +36,6 @@ class RealEstate:
         return value * (1 + self.broker_fee)
 
     def maintenance_cost(self, year):
-        print(self.costs, year)
         return -self.costs[year]
     
     def taxe_cost(self, year):
@@ -167,4 +166,3 @@ if __name__ == '__main__':
             'liabilities': liabilities,
             'net_worth': assets + liabilities
         }
-        print(record)
