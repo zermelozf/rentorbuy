@@ -13,21 +13,19 @@ class RealEstate:
             house_age,
             fully_amortized_age,
             land_value,
+            costs=[],
             house_surface=100,
             broker_fee=0.07, 
-            market_rate=0.02,
-            maintenance_fee=500,
-            maintenance_frequency=15
+            market_rate=0.02
         ):
         self.house_value = house_value
         self.house_age = house_age
         self.house_surface = house_surface
         self.fully_amortized_age = fully_amortized_age
         self.land_value = land_value
+        self.costs = costs
         self.broker_fee = broker_fee
         self.market_rate = market_rate
-        self.maintenance_fee = maintenance_fee
-        self.maintenance_frequency = maintenance_frequency
 
     @property
     def total_cost(self):
@@ -38,9 +36,8 @@ class RealEstate:
         return value * (1 + self.broker_fee)
 
     def maintenance_cost(self, year):
-        if (((self.house_age + year) % self.maintenance_frequency  == 0) and (year != 0)):
-            return -self.maintenance_fee
-        return 0
+        print(self.costs, year)
+        return -self.costs[year]
     
     def taxe_cost(self, year):
         return -self.value_at_year(year) * (.04 / 6 *  + .03 / 3)

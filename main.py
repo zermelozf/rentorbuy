@@ -1,3 +1,5 @@
+import uuid
+
 import streamlit as st
 import numpy_financial as npf
 import numpy as np
@@ -8,6 +10,9 @@ import plotly.graph_objects as go
 
 
 from models import Loan, RealEstate, Rent
+
+if "costs" not in st.session_state:
+    st.session_state["costs"] = []
 
 
 n = st.sidebar.slider("Timeline (years)", value=35, max_value=50)
@@ -58,25 +63,45 @@ with tabs[2]:
               "house will be amortized over 22 years.")
     )
     surface = st.number_input('Surface (m^2)', value=100)
-    maintenance_fee = st.number_input('Maintenance fee (万円)', value=5 * surface)
-    maintenance_frequency = st.number_input('Maintenance frequency (in years)', value=15)
-    include_maintainance_cost = st.checkbox(
-        "Seller discounts future costs", 
-        value=True, 
-        help=("If selling a house that must have maintenance work done soon, the value of the house "
-              "should go down. Inflation is used to compute how much devalue to incur.")
-    )
     broker_fee = st.number_input('Broker fee', format='%f', value=0.07)
+    
+    st.subheader("Maintenance costs")
+    col1, col2 = st.columns(2)
+    tt, vv = [], []
 
+    def add_cost():
+        element_id = uuid.uuid4()
+        st.session_state["costs"].append(str(element_id))
+
+    def remove_cost(row_id):
+        st.session_state["costs"].remove(str(row_id))
+
+    def generate_cost(cost_id):
+        cost_container = st.empty()
+        cost_columns = cost_container.columns((3, 2, 1))
+        cost_value = cost_columns[0].number_input("Amount", value=0, key=f"txt_{cost_id}")
+        cost_time = cost_columns[1].number_input("When", step=1, value=0, key=f"nbr_{cost_id}")
+        cost_columns[2].button("🗑️", key=f"del_{cost_id}", on_click=remove_cost, args=[cost_id])
+        return {"value": cost_value, "time": cost_time}
+    
+    costs, c = [], [0] * (n + 1)
+    for row in st.session_state["costs"]:
+        cost_data = generate_cost(row)
+        costs.append(cost_data)
+        c[cost_data['time']] += cost_data['value']
+    
+    st.button("Add cost", on_click=add_cost)
+
+    include_maintainance_cost = True
+    
     house = RealEstate(
         house_value=house_price,
         house_age=current_age,
         fully_amortized_age=max_age,
         land_value=land_price,
+        costs=c,
         broker_fee=broker_fee,
-        market_rate=appreciation_rate,
-        maintenance_fee=maintenance_fee,
-        maintenance_frequency=maintenance_frequency
+        market_rate=appreciation_rate
     )
 
     st.subheader('Loan details')
