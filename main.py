@@ -89,7 +89,7 @@ with tabs[2]:
         cost_data = generate_cost(row)
         costs.append(cost_data)
         c[cost_data['time']] += cost_data['value']
-    
+
     st.button("Add cost", on_click=add_cost)
 
     include_maintainance_cost = True
@@ -150,9 +150,6 @@ for year in range(n + 1):
     cashflow_with_sale[-1] += sale_revenue
     data['npv (万円)'].append(npf.npv(discount_rate, cashflow_with_sale))
     data['irr (%)'].append(round(npf.irr(cashflow_with_sale) * 100, 2))
-    print(year)
-    print(cashflow_with_sale, npf.irr(cashflow_with_sale))
-    print(sale_revenue)
 data = pd.DataFrame(data)
 cost = pd.DataFrame(cost)
 
